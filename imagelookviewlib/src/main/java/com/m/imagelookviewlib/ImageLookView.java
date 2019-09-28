@@ -113,7 +113,6 @@ public class ImageLookView extends AppCompatImageView {
                         startScaleAnimation();
                     }
                 }
-
                 break;
         }
         return true;
@@ -272,7 +271,6 @@ public class ImageLookView extends AppCompatImageView {
             }
             invalidate();
         }
-
     }
 
 
@@ -280,7 +278,7 @@ public class ImageLookView extends AppCompatImageView {
      * 开始缩放动画，将bitmap放大到初始大小
      */
     private void startScaleAnimation() {
-        ValueAnimator animator = ValueAnimator.ofFloat(1, scaling);
+        ValueAnimator animator = ValueAnimator.ofFloat(matrixValues[0], scaling);
         animator.setDuration(300);
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -288,9 +286,9 @@ public class ImageLookView extends AppCompatImageView {
                 float scale = (float) valueAnimator.getAnimatedValue();
                 scaleMatrix = getImageMatrix();
                 scaleMatrix.getValues(matrixValues);
-
                 scaleMatrix.postScale(scale/matrixValues[0], scale/matrixValues[0], getWidth() / 2, getHeight() / 2);
                 invalidate();
+                Log.e("testa",scaleMatrix.toString());
             }
         });
         animator.start();
