@@ -1,0 +1,2 @@
+include ':app', ':imagelookviewlib'
+rootProject.name='ImageLookView'
