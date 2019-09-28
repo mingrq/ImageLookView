@@ -1,11 +1,13 @@
 package com.m.imagelookviewlib;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import androidx.appcompat.widget.AppCompatImageView;
@@ -15,7 +17,9 @@ public class ImageLookView extends AppCompatImageView {
 
     private Matrix scaleMatrix;
 
-    private float scaling = 1;//最小缩放比例
+    private float scaling;//初始缩放比例
+
+
     private boolean init = true;//初始化
     private float[] matrixValues = new float[9];
 
@@ -32,6 +36,9 @@ public class ImageLookView extends AppCompatImageView {
     private RectF bitmapRectF;//原始bitmap尺寸
     private RectF bitmapNowRectF;
     private Matrix bitmapInitMatrix;
+
+    private boolean allowShrink = true;//是否允许缩小
+    private float allowLeastScaling = 1;//允许最小缩放比例
 
     public ImageLookView(Context context) {
         this(context, null);
@@ -99,10 +106,14 @@ public class ImageLookView extends AppCompatImageView {
                     }
                 }
                 break;
+            case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_UP://手指抬起
-                if (matrixValues[0] < scaling){
-                    startScaleAnimation();
+                if (allowShrink) {
+                    if (matrixValues[0] < scaling) {
+                        startScaleAnimation();
+                    }
                 }
+
                 break;
         }
         return true;
@@ -250,11 +261,15 @@ public class ImageLookView extends AppCompatImageView {
             }
         }
 
-        if (scale * matrixValues[0] > scaling) {
+        if (scale * matrixValues[0] > allowLeastScaling) {
             scaleMatrix.postScale(scale, scale, pointF.x, pointF.y);
             invalidate();
-        }else {
-            scaleMatrix.set(bitmapInitMatrix);
+        } else {
+            if (allowShrink) {
+                scaleMatrix.postScale(1 / matrixValues[0], 1 / matrixValues[0], getWidth() / 2, getHeight() / 2);
+            } else {
+                scaleMatrix.set(bitmapInitMatrix);
+            }
             invalidate();
         }
 
@@ -265,6 +280,19 @@ public class ImageLookView extends AppCompatImageView {
      * 开始缩放动画，将bitmap放大到初始大小
      */
     private void startScaleAnimation() {
+        ValueAnimator animator = ValueAnimator.ofFloat(1, scaling);
+        animator.setDuration(300);
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                float scale = (float) valueAnimator.getAnimatedValue();
+                scaleMatrix = getImageMatrix();
+                scaleMatrix.getValues(matrixValues);
 
+                scaleMatrix.postScale(scale/matrixValues[0], scale/matrixValues[0], getWidth() / 2, getHeight() / 2);
+                invalidate();
+            }
+        });
+        animator.start();
     }
 }

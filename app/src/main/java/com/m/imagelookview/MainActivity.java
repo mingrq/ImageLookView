@@ -1,6 +1,9 @@
 package com.m.imagelookview;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         final ImageView imageView = findViewById(R.id.iv);
+
 
      /*   Log.e("test1", imageView.getImageMatrix().toString());
         Log.e("test2", imageView.getDrawable().getBounds().toString());
