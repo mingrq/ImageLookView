@@ -37,8 +37,8 @@ public class ImageLookView extends AppCompatImageView {
     private RectF bitmapNowRectF;
     private Matrix bitmapInitMatrix;
 
-    private boolean allowShrink = true;//是否允许缩小
-    private float allowLeastScaling = 1;//允许最小缩放比例
+  /*  private boolean allowShrink = true;//是否允许缩小
+    private float allowLeastScaling = 1;//允许最小缩放比例*/
 
     public ImageLookView(Context context) {
         this(context, null);
@@ -108,11 +108,11 @@ public class ImageLookView extends AppCompatImageView {
                 break;
             case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_UP://手指抬起
-                if (allowShrink) {
+              /*  if (allowShrink) {
                     if (matrixValues[0] < scaling) {
                         startScaleAnimation();
                     }
-                }
+                }*/
 
                 break;
         }
@@ -261,15 +261,11 @@ public class ImageLookView extends AppCompatImageView {
             }
         }
 
-        if (scale * matrixValues[0] > allowLeastScaling) {
+        if (scale * matrixValues[0] > scaling) {
             scaleMatrix.postScale(scale, scale, pointF.x, pointF.y);
             invalidate();
         } else {
-            if (allowShrink) {
-                scaleMatrix.postScale(1 / matrixValues[0], 1 / matrixValues[0], getWidth() / 2, getHeight() / 2);
-            } else {
-                scaleMatrix.set(bitmapInitMatrix);
-            }
+            scaleMatrix.set(bitmapInitMatrix);
             invalidate();
         }
 
@@ -289,7 +285,7 @@ public class ImageLookView extends AppCompatImageView {
                 scaleMatrix = getImageMatrix();
                 scaleMatrix.getValues(matrixValues);
 
-                scaleMatrix.postScale(scale/matrixValues[0], scale/matrixValues[0], getWidth() / 2, getHeight() / 2);
+                scaleMatrix.postScale(scale / matrixValues[0], scale / matrixValues[0], getWidth() / 2, getHeight() / 2);
                 invalidate();
             }
         });
