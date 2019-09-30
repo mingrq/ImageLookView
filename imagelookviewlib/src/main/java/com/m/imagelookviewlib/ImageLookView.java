@@ -16,13 +16,13 @@ public class ImageLookView extends AppCompatImageView {
 
 
     private float scaling;//初始缩放比例
-    private Matrix bitmapInitMatrix;//初始缩放矩阵
     private boolean init = true;//初始化
     private RectF viewRectF;//初始控件尺寸
     private RectF bitmapRectF;//初始bitmap尺寸
 
 
     private float maxScaling;//最大缩放比例
+
     private float minScaling = 1.0f;//最小缩放比例
 
 
@@ -56,10 +56,41 @@ public class ImageLookView extends AppCompatImageView {
         bitmapRectF = new RectF(0, 0, getDrawable().getIntrinsicWidth(), getDrawable().getIntrinsicHeight());
     }
 
+    /**
+     * 获取最大缩放值
+     * @return
+     */
+    public float getMaxScaling() {
+        return maxScaling;
+    }
+
+    /**
+     * 设置最大缩放值
+     * @param maxScaling
+     */
+    public void setMaxScaling(float maxScaling) {
+        this.maxScaling = maxScaling;
+    }
+
+    /**
+     * 获取最小缩放值
+     * @return
+     */
+    public float getMinScaling() {
+        return minScaling;
+    }
+
+    /**
+     * 设置最小缩放值
+     * @param minScaling
+     */
+    public void setMinScaling(float minScaling) {
+        this.minScaling = minScaling;
+    }
+
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN://第一次手指按下
                 firstBasicsPoint.x = event.getX();
@@ -107,11 +138,10 @@ public class ImageLookView extends AppCompatImageView {
                 break;
             case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_UP://手指抬起
-
+                getImageMatrix().getValues(matrixValues);
                 if (matrixValues[0] < scaling) {
-                    startScaleAnimation();
+                    startScaleAnimation(matrixValues[0]);
                 }
-
                 break;
         }
         return true;
@@ -163,7 +193,6 @@ public class ImageLookView extends AppCompatImageView {
             getImageMatrix().getValues(matrixValues);
             scaling = matrixValues[0];//初始缩放倍数
             maxScaling = scaling * 5;
-            bitmapInitMatrix = new Matrix(getImageMatrix());//bitmap初始矩阵
             init = false;
         }
     }
@@ -173,8 +202,8 @@ public class ImageLookView extends AppCompatImageView {
      * 设置平移
      */
     private void setTranslation(float oneMoveX, float oneMoveY) {
-        float movex = 0;
-        float movey = 0;
+        float movex;
+        float movey;
         scaleMatrix = getImageMatrix();
         //获取bitmap现在的边界
         bitmapNowRectF.set(bitmapRectF);
@@ -279,10 +308,8 @@ public class ImageLookView extends AppCompatImageView {
                         scaleMatrix.postTranslate(-scaleAfterRectF.left, 0);
                     }
                     if (scaleAfterRectF.right < viewRectF.right) {
-                        Log.e("sdfsad", scaleAfterRectF.right + "   " + viewRectF.right + "   " + (scaleAfterRectF.right - viewRectF.right));
-                        scaleMatrix.postTranslate(viewRectF.right-scaleAfterRectF.right, 0);
+                        scaleMatrix.postTranslate(viewRectF.right - scaleAfterRectF.right, 0);
                     }
-
                 } else {
                     scaleMatrix.postTranslate((viewRectF.width() - scaleAfterRectF.width()) / 2 - scaleAfterRectF.left, 0);
                 }
@@ -291,7 +318,7 @@ public class ImageLookView extends AppCompatImageView {
                         scaleMatrix.postTranslate(0, -scaleAfterRectF.top);
                     }
                     if (scaleAfterRectF.bottom < viewRectF.bottom) {
-                        scaleMatrix.postTranslate(0, viewRectF.bottom-scaleAfterRectF.bottom );
+                        scaleMatrix.postTranslate(0, viewRectF.bottom - scaleAfterRectF.bottom);
                     }
 
                 } else {
@@ -383,9 +410,9 @@ public class ImageLookView extends AppCompatImageView {
     /**
      * 开始缩放动画，将bitmap放大到初始大小
      */
-    private void startScaleAnimation() {
-        ValueAnimator animator = ValueAnimator.ofFloat(1, scaling);
-        animator.setDuration(300);
+    private void startScaleAnimation(float startsacl) {
+        ValueAnimator animator = ValueAnimator.ofFloat(startsacl, scaling);
+        animator.setDuration(200);
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
