@@ -12,22 +12,16 @@ import android.view.MotionEvent;
 
 import androidx.appcompat.widget.AppCompatImageView;
 
-public class ImageLookView extends AppCompatImageView {
+public class ImageLookViewd extends AppCompatImageView {
 
+
+    private Matrix scaleMatrix;
 
     private float scaling;//初始缩放比例
-    private Matrix bitmapInitMatrix;//初始缩放矩阵
+
+
     private boolean init = true;//初始化
-    private RectF viewRectF;//初始控件尺寸
-    private RectF bitmapRectF;//初始bitmap尺寸
-
-
-    private float maxScaling;//最大缩放比例
-    private float minScaling = 1.0f;//最小缩放比例
-
-
     private float[] matrixValues = new float[9];
-    private Matrix scaleMatrix;
 
     private int firstPointIndex = 0;
     private int secondPointIndex = 1;
@@ -36,24 +30,31 @@ public class ImageLookView extends AppCompatImageView {
     private PointF secondBasicsPoint;
     private PointF firstPoint;
     private PointF secondPoint;
+    private Matrix bitmapCalculateMatrix;
 
+    private RectF viewRectF;//控件尺寸
+    private RectF bitmapRectF;//原始bitmap尺寸
     private RectF bitmapNowRectF;
+    private Matrix bitmapInitMatrix;
 
+  /*  private boolean allowShrink = true;//是否允许缩小
+    private float allowLeastScaling = 1;//允许最小缩放比例*/
 
-    public ImageLookView(Context context) {
+    public ImageLookViewd(Context context) {
         this(context, null);
     }
 
-    public ImageLookView(Context context, AttributeSet attrs) {
+    public ImageLookViewd(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public ImageLookView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public ImageLookViewd(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         firstBasicsPoint = new PointF();
         secondBasicsPoint = new PointF();
         bitmapNowRectF = new RectF();
         bitmapRectF = new RectF(0, 0, getDrawable().getIntrinsicWidth(), getDrawable().getIntrinsicHeight());
+        bitmapCalculateMatrix = new Matrix();
     }
 
 
@@ -107,10 +108,11 @@ public class ImageLookView extends AppCompatImageView {
                 break;
             case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_UP://手指抬起
-
-                if (matrixValues[0] < scaling) {
-                    startScaleAnimation();
-                }
+              /*  if (allowShrink) {
+                    if (matrixValues[0] < scaling) {
+                        startScaleAnimation();
+                    }
+                }*/
 
                 break;
         }
@@ -158,12 +160,12 @@ public class ImageLookView extends AppCompatImageView {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if (init) {
-            viewRectF = new RectF(0, 0, getWidth(), getHeight());//控件矩形
-
-            getImageMatrix().getValues(matrixValues);
-            scaling = matrixValues[0];//初始缩放倍数
-            maxScaling = scaling * 5;
-            bitmapInitMatrix = new Matrix(getImageMatrix());//bitmap初始矩阵
+            scaleMatrix = getImageMatrix();
+            viewRectF = new RectF(0, 0, getWidth(), getHeight());
+            scaleMatrix.getValues(matrixValues);
+            scaling = matrixValues[0];
+            bitmapInitMatrix = new Matrix();
+            bitmapInitMatrix.set(scaleMatrix);
             init = false;
         }
     }
@@ -179,18 +181,12 @@ public class ImageLookView extends AppCompatImageView {
         //获取bitmap现在的边界
         bitmapNowRectF.set(bitmapRectF);
         scaleMatrix.mapRect(bitmapNowRectF);
-        //设置可移动条件
-        if (bitmapNowRectF.height() > viewRectF.height() && bitmapNowRectF.top <= viewRectF.top && bitmapNowRectF.bottom >= viewRectF.bottom) {
+        if (bitmapNowRectF.height() > viewRectF.height()) {
             movey = oneMoveY;
-        } else {
-            movey = 0;
         }
-        if (bitmapNowRectF.width() > viewRectF.width() && bitmapNowRectF.left <= viewRectF.left && bitmapNowRectF.right >= viewRectF.right) {
+        if (bitmapNowRectF.width() > viewRectF.width()) {
             movex = oneMoveX;
-        } else {
-            movex = 0;
         }
-        //设置界限移动距离
         if (movey > 0 && bitmapNowRectF.top + movey > 0) {
             movey = -bitmapNowRectF.top;
         }
@@ -214,90 +210,29 @@ public class ImageLookView extends AppCompatImageView {
     private void setScale(PointF firstPoint, PointF secondPoint, PointF firstBasicsPoint, PointF secondBasicsPoint) {
         float movePointSize = getTwoPointDistance(firstPoint, secondPoint);//移动后两点距离
         float basicsPointSize = getTwoPointDistance(firstBasicsPoint, secondBasicsPoint);//基础点距离
-        float scale = movePointSize / basicsPointSize;//缩放倍数
-
         scaleMatrix = getImageMatrix();
         scaleMatrix.getValues(matrixValues);
-        //设置可缩放条件
-        if (matrixValues[0] >= minScaling && matrixValues[0] <= maxScaling) {
-            //缩放范围必须在设置的最大缩放与最小缩放值之间
 
-            //设置极限缩放
-            if (matrixValues[0] * scale < minScaling) {
-                scale = minScaling / matrixValues[0];
-            }
-            if (matrixValues[0] * scale > maxScaling) {
-                scale = maxScaling / matrixValues[0];
-            }
+        float scale = movePointSize / basicsPointSize;//缩放倍数
+        Log.e("scale", String.valueOf(scale));
+        PointF pointF = getScaleCentricPoint(scale, firstBasicsPoint, secondBasicsPoint);
+        RectF bitmapScaleBeforeRectF = getBitmapScaleBeforeRectF();
+        Log.e("top", String.valueOf(bitmapScaleBeforeRectF.top));
+        RectF bitmapScaleAfterRectF = getBitmapScaleAfterRectF(scale, pointF);
+        if (bitmapScaleBeforeRectF.left < viewRectF.left && viewRectF.left < bitmapScaleAfterRectF.left) {
+            scale = pointF.x / (pointF.x - bitmapScaleBeforeRectF.left);
+            Log.e("scale1", pointF.x + "  " + bitmapScaleBeforeRectF.left + "  " + scale);
+        }
+        if (bitmapScaleBeforeRectF.height() > viewRectF.height() && viewRectF.height() > bitmapScaleAfterRectF.height()) {
+            scale = bitmapScaleAfterRectF.height() / bitmapScaleBeforeRectF.height();
+            Log.e("scale2", String.valueOf(scale));
+        }
 
-            PointF scaleCentricPoint = getMiddlePoint(firstBasicsPoint, secondBasicsPoint);
-            bitmapNowRectF.set(bitmapRectF);
-            scaleMatrix.mapRect(bitmapNowRectF);
-
-
-            //设置缩放点
-            if (!viewRectF.contains(bitmapNowRectF)) {
-
-                if (bitmapNowRectF.height() > viewRectF.height()) {
-                    if (scale < 1) {
-                        if (bitmapNowRectF.top >= viewRectF.top) {
-                            scaleCentricPoint.y = viewRectF.top;
-                        }
-                        if (bitmapNowRectF.bottom <= viewRectF.bottom) {
-                            scaleCentricPoint.y = viewRectF.bottom;
-                        }
-                    }
-                } else {
-                    scaleCentricPoint.y = viewRectF.height() / 2;
-                }
-
-                if (bitmapNowRectF.width() > viewRectF.width()) {
-                    if (scale < 1) {
-                        if (bitmapNowRectF.left >= viewRectF.left) {
-                            scaleCentricPoint.x = viewRectF.left;
-                        }
-                        if (bitmapNowRectF.right <= viewRectF.right) {
-                            scaleCentricPoint.x = viewRectF.right;
-                        }
-                    }
-                } else {
-                    scaleCentricPoint.x = viewRectF.width() / 2;
-                }
-            } else {
-                //bitmap比控件小
-                scaleCentricPoint.x = viewRectF.width() / 2;
-                scaleCentricPoint.y = viewRectF.height() / 2;
-            }
-
-            scaleMatrix.postScale(scale, scale, scaleCentricPoint.x, scaleCentricPoint.y);
-            if (scale < 1) {
-                Matrix scaleAftermatrix = new Matrix(scaleMatrix);
-                RectF scaleAfterRectF = new RectF(bitmapRectF);
-                scaleAftermatrix.mapRect(scaleAfterRectF);
-                if (scaleAfterRectF.width() > viewRectF.width()) {
-                    if (scaleAfterRectF.left > 0) {
-                        scaleMatrix.postTranslate(-scaleAfterRectF.left, 0);
-                    }
-                    if (scaleAfterRectF.right < viewRectF.right) {
-                        Log.e("sdfsad", scaleAfterRectF.right + "   " + viewRectF.right + "   " + (scaleAfterRectF.right - viewRectF.right));
-                        scaleMatrix.postTranslate(viewRectF.right-scaleAfterRectF.right, 0);
-                    }
-
-                } else {
-                    scaleMatrix.postTranslate((viewRectF.width() - scaleAfterRectF.width()) / 2 - scaleAfterRectF.left, 0);
-                }
-                if (scaleAfterRectF.height() > viewRectF.height()) {
-                    if (scaleAfterRectF.top > 0) {
-                        scaleMatrix.postTranslate(0, -scaleAfterRectF.top);
-                    }
-                    if (scaleAfterRectF.bottom < viewRectF.bottom) {
-                        scaleMatrix.postTranslate(0, viewRectF.bottom-scaleAfterRectF.bottom );
-                    }
-
-                } else {
-                    scaleMatrix.postTranslate(0, (viewRectF.height() - scaleAfterRectF.height()) / 2 - scaleAfterRectF.top);
-                }
-            }
+        if (scale * matrixValues[0] > scaling) {
+            scaleMatrix.postScale(scale, scale, pointF.x, pointF.y);
+            invalidate();
+        } else {
+            scaleMatrix.set(bitmapInitMatrix);
             invalidate();
         }
 
