@@ -7,7 +7,6 @@ import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 
 import androidx.appcompat.widget.AppCompatImageView;
@@ -17,25 +16,24 @@ public class ImageLookView extends AppCompatImageView {
 
     private float scaling;//初始缩放比例
     private boolean init = true;//初始化
-    private RectF viewRectF;//初始控件尺寸
-    private RectF bitmapRectF;//初始bitmap尺寸
+    private RectF viewInitRectF;//初始控件尺寸
+    private RectF bitmapInitRectF;//初始bitmap尺寸
 
 
-    private float maxScaling;//最大缩放比例
-
+    private float maxScaling = 5.0f;//最大缩放比例
     private float minScaling = 1.0f;//最小缩放比例
 
 
     private float[] matrixValues = new float[9];
     private Matrix scaleMatrix;
 
-    private int firstPointIndex = 0;
-    private int secondPointIndex = 1;
+    private int firstPointIndex = 0;//第一触点下标
+    private int secondPointIndex = 1;//第二触点下标
     //基础点
     private PointF firstBasicsPoint;
     private PointF secondBasicsPoint;
-    private PointF firstPoint;
-    private PointF secondPoint;
+    private PointF firstMoveAfterPoint;
+    private PointF secondMoveAfterPoint;
 
     private RectF bitmapNowRectF;
 
@@ -53,41 +51,8 @@ public class ImageLookView extends AppCompatImageView {
         firstBasicsPoint = new PointF();
         secondBasicsPoint = new PointF();
         bitmapNowRectF = new RectF();
-        bitmapRectF = new RectF(0, 0, getDrawable().getIntrinsicWidth(), getDrawable().getIntrinsicHeight());
+        bitmapInitRectF = new RectF(0, 0, getDrawable().getIntrinsicWidth(), getDrawable().getIntrinsicHeight());
     }
-
-    /**
-     * 获取最大缩放值
-     * @return
-     */
-    public float getMaxScaling() {
-        return maxScaling;
-    }
-
-    /**
-     * 设置最大缩放值
-     * @param maxScaling
-     */
-    public void setMaxScaling(float maxScaling) {
-        this.maxScaling = maxScaling;
-    }
-
-    /**
-     * 获取最小缩放值
-     * @return
-     */
-    public float getMinScaling() {
-        return minScaling;
-    }
-
-    /**
-     * 设置最小缩放值
-     * @param minScaling
-     */
-    public void setMinScaling(float minScaling) {
-        this.minScaling = minScaling;
-    }
-
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -115,11 +80,11 @@ public class ImageLookView extends AppCompatImageView {
                         secondPointIndex = event.getPointerId(1);
                         secondBasicsPoint.set(getPointNow(event, 1));
                     } else {
-                        firstPoint = getPointNow(event, 0);//获取第一触点位置
-                        secondPoint = getPointNow(event, 1);//获取第二触点位置
-                        setScale(firstPoint, secondPoint, firstBasicsPoint, secondBasicsPoint);
-                        firstBasicsPoint.set(firstPoint);
-                        secondBasicsPoint.set(secondPoint);
+                        firstMoveAfterPoint = getPointNow(event, 0);//获取第一触点位置
+                        secondMoveAfterPoint = getPointNow(event, 1);//获取第二触点位置
+                        setScale(firstMoveAfterPoint, secondMoveAfterPoint, firstBasicsPoint, secondBasicsPoint);
+                        firstBasicsPoint.set(firstMoveAfterPoint);
+                        secondBasicsPoint.set(secondMoveAfterPoint);
                     }
                 }
 
@@ -130,9 +95,9 @@ public class ImageLookView extends AppCompatImageView {
                         firstPointIndex = event.getPointerId(0);
                         firstBasicsPoint.set(getPointNow(event, 0));
                     } else {
-                        firstPoint = getPointNow(event, 0);//获取第一触点位置
-                        setTranslation(firstPoint.x - firstBasicsPoint.x, firstPoint.y - firstBasicsPoint.y);
-                        firstBasicsPoint.set(firstPoint);
+                        firstMoveAfterPoint = getPointNow(event, 0);//获取第一触点位置
+                        setTranslation(firstMoveAfterPoint.x - firstBasicsPoint.x, firstMoveAfterPoint.y - firstBasicsPoint.y);
+                        firstBasicsPoint.set(firstMoveAfterPoint);
                     }
                 }
                 break;
@@ -188,11 +153,9 @@ public class ImageLookView extends AppCompatImageView {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if (init) {
-            viewRectF = new RectF(0, 0, getWidth(), getHeight());//控件矩形
-
+            viewInitRectF = new RectF(0, 0, getWidth(), getHeight());//控件矩形
             getImageMatrix().getValues(matrixValues);
             scaling = matrixValues[0];//初始缩放倍数
-            maxScaling = scaling * 5;
             init = false;
         }
     }
@@ -206,15 +169,15 @@ public class ImageLookView extends AppCompatImageView {
         float movey;
         scaleMatrix = getImageMatrix();
         //获取bitmap现在的边界
-        bitmapNowRectF.set(bitmapRectF);
+        bitmapNowRectF.set(bitmapInitRectF);
         scaleMatrix.mapRect(bitmapNowRectF);
         //设置可移动条件
-        if (bitmapNowRectF.height() > viewRectF.height() && bitmapNowRectF.top <= viewRectF.top && bitmapNowRectF.bottom >= viewRectF.bottom) {
+        if (bitmapNowRectF.height() > viewInitRectF.height() && bitmapNowRectF.top <= viewInitRectF.top && bitmapNowRectF.bottom >= viewInitRectF.bottom) {
             movey = oneMoveY;
         } else {
             movey = 0;
         }
-        if (bitmapNowRectF.width() > viewRectF.width() && bitmapNowRectF.left <= viewRectF.left && bitmapNowRectF.right >= viewRectF.right) {
+        if (bitmapNowRectF.width() > viewInitRectF.width() && bitmapNowRectF.left <= viewInitRectF.left && bitmapNowRectF.right >= viewInitRectF.right) {
             movex = oneMoveX;
         } else {
             movex = 0;
@@ -223,14 +186,14 @@ public class ImageLookView extends AppCompatImageView {
         if (movey > 0 && bitmapNowRectF.top + movey > 0) {
             movey = -bitmapNowRectF.top;
         }
-        if (movey < 0 && bitmapNowRectF.bottom + movey < viewRectF.height()) {
-            movey = viewRectF.height() - bitmapNowRectF.bottom;
+        if (movey < 0 && bitmapNowRectF.bottom + movey < viewInitRectF.height()) {
+            movey = viewInitRectF.height() - bitmapNowRectF.bottom;
         }
         if (movex > 0 && bitmapNowRectF.left + movex > 0) {
             movex = -bitmapNowRectF.left;
         }
-        if (movex < 0 && bitmapNowRectF.right + movex < viewRectF.width()) {
-            movex = viewRectF.width() - bitmapNowRectF.right;
+        if (movex < 0 && bitmapNowRectF.right + movex < viewInitRectF.width()) {
+            movex = viewInitRectF.width() - bitmapNowRectF.right;
         }
         scaleMatrix.postTranslate(movex, movey);
         invalidate();
@@ -259,70 +222,34 @@ public class ImageLookView extends AppCompatImageView {
                 scale = maxScaling / matrixValues[0];
             }
 
-            PointF scaleCentricPoint = getMiddlePoint(firstBasicsPoint, secondBasicsPoint);
-            bitmapNowRectF.set(bitmapRectF);
-            scaleMatrix.mapRect(bitmapNowRectF);
+            //获取缩放中心点
+            PointF scaleCentricPoint = getScaleCentricPoint(scale, firstBasicsPoint, secondBasicsPoint);
 
-
-            //设置缩放点
-            if (!viewRectF.contains(bitmapNowRectF)) {
-
-                if (bitmapNowRectF.height() > viewRectF.height()) {
-                    if (scale < 1) {
-                        if (bitmapNowRectF.top >= viewRectF.top) {
-                            scaleCentricPoint.y = viewRectF.top;
-                        }
-                        if (bitmapNowRectF.bottom <= viewRectF.bottom) {
-                            scaleCentricPoint.y = viewRectF.bottom;
-                        }
-                    }
-                } else {
-                    scaleCentricPoint.y = viewRectF.height() / 2;
-                }
-
-                if (bitmapNowRectF.width() > viewRectF.width()) {
-                    if (scale < 1) {
-                        if (bitmapNowRectF.left >= viewRectF.left) {
-                            scaleCentricPoint.x = viewRectF.left;
-                        }
-                        if (bitmapNowRectF.right <= viewRectF.right) {
-                            scaleCentricPoint.x = viewRectF.right;
-                        }
-                    }
-                } else {
-                    scaleCentricPoint.x = viewRectF.width() / 2;
-                }
-            } else {
-                //bitmap比控件小
-                scaleCentricPoint.x = viewRectF.width() / 2;
-                scaleCentricPoint.y = viewRectF.height() / 2;
-            }
-
+            //缩放
             scaleMatrix.postScale(scale, scale, scaleCentricPoint.x, scaleCentricPoint.y);
+
+            //调整bitmap位置
             if (scale < 1) {
-                Matrix scaleAftermatrix = new Matrix(scaleMatrix);
-                RectF scaleAfterRectF = new RectF(bitmapRectF);
-                scaleAftermatrix.mapRect(scaleAfterRectF);
-                if (scaleAfterRectF.width() > viewRectF.width()) {
+                RectF scaleAfterRectF = getBitmapScaleAfterRectF(scaleMatrix);//缩放后的图片矩形
+                if (scaleAfterRectF.width() > viewInitRectF.width()) {
                     if (scaleAfterRectF.left > 0) {
                         scaleMatrix.postTranslate(-scaleAfterRectF.left, 0);
                     }
-                    if (scaleAfterRectF.right < viewRectF.right) {
-                        scaleMatrix.postTranslate(viewRectF.right - scaleAfterRectF.right, 0);
+                    if (scaleAfterRectF.right < viewInitRectF.right) {
+                        scaleMatrix.postTranslate(viewInitRectF.right - scaleAfterRectF.right, 0);
                     }
                 } else {
-                    scaleMatrix.postTranslate((viewRectF.width() - scaleAfterRectF.width()) / 2 - scaleAfterRectF.left, 0);
+                    scaleMatrix.postTranslate((viewInitRectF.width() - scaleAfterRectF.width()) / 2 - scaleAfterRectF.left, 0);
                 }
-                if (scaleAfterRectF.height() > viewRectF.height()) {
+                if (scaleAfterRectF.height() > viewInitRectF.height()) {
                     if (scaleAfterRectF.top > 0) {
                         scaleMatrix.postTranslate(0, -scaleAfterRectF.top);
                     }
-                    if (scaleAfterRectF.bottom < viewRectF.bottom) {
-                        scaleMatrix.postTranslate(0, viewRectF.bottom - scaleAfterRectF.bottom);
+                    if (scaleAfterRectF.bottom < viewInitRectF.bottom) {
+                        scaleMatrix.postTranslate(0, viewInitRectF.bottom - scaleAfterRectF.bottom);
                     }
-
                 } else {
-                    scaleMatrix.postTranslate(0, (viewRectF.height() - scaleAfterRectF.height()) / 2 - scaleAfterRectF.top);
+                    scaleMatrix.postTranslate(0, (viewInitRectF.height() - scaleAfterRectF.height()) / 2 - scaleAfterRectF.top);
                 }
             }
             invalidate();
@@ -332,29 +259,18 @@ public class ImageLookView extends AppCompatImageView {
 
 
     /**
-     * 获取bitmap缩放前的矩形
-     *
-     * @return
-     */
-    private RectF getBitmapScaleBeforeRectF() {
-        RectF bitmapScaleBeforeRectF = new RectF(bitmapRectF);//当前图片矩形
-        Matrix imageMatrix = getImageMatrix();//当前图片的矩阵
-        imageMatrix.mapRect(bitmapScaleBeforeRectF);
-        return bitmapScaleBeforeRectF;
-    }
-
-    /**
      * 获取bitmap缩放后的矩形
      *
      * @return
      */
-    private RectF getBitmapScaleAfterRectF(float scale, PointF scaleCentricPoint) {
-        RectF bitmapScaleAfterRectF = new RectF();//当前图片矩形
-        Matrix imageMatrix = getImageMatrix();//当前图片的矩阵
-        imageMatrix.postScale(scale, scale, scaleCentricPoint.x, scaleCentricPoint.y);
-        bitmapScaleAfterRectF.set(bitmapRectF);
-        imageMatrix.mapRect(bitmapScaleAfterRectF);
-        return bitmapScaleAfterRectF;
+    RectF scaleAfterRectF;
+
+    private RectF getBitmapScaleAfterRectF(Matrix matrix) {
+        if (scaleAfterRectF == null)
+            scaleAfterRectF = new RectF();
+        scaleAfterRectF.set(bitmapInitRectF);
+        matrix.mapRect(scaleAfterRectF);
+        return scaleAfterRectF;
     }
 
     /**
@@ -366,45 +282,44 @@ public class ImageLookView extends AppCompatImageView {
      * @return
      */
     private PointF getScaleCentricPoint(float scale, PointF firstBasicsPoint, PointF secondBasicsPoint) {
-        PointF scaleCentricPointF = getMiddlePoint(firstBasicsPoint, secondBasicsPoint);//缩放中心点
-        RectF bitmapScaleBeforeRectF = getBitmapScaleBeforeRectF();
-        if (scale > 1) {
-            //放大
-            if (bitmapScaleBeforeRectF.width() <= viewRectF.width())
-                scaleCentricPointF.x = getWidth() / 2;
-            if (bitmapScaleBeforeRectF.height() <= viewRectF.height())
-                scaleCentricPointF.y = getHeight() / 2;
-        } else {
-            //缩小
-            if (!viewRectF.contains(bitmapScaleBeforeRectF)) {
-                if (bitmapScaleBeforeRectF.height() > viewRectF.height()) {
-                    if (bitmapScaleBeforeRectF.top >= viewRectF.top) {
-                        scaleCentricPointF.y = viewRectF.top;
-                    }
-                    if (bitmapScaleBeforeRectF.bottom <= viewRectF.bottom) {
-                        scaleCentricPointF.y = viewRectF.bottom;
-                    }
-                } else {
-                    scaleCentricPointF.y = viewRectF.height() / 2;
-                }
+        PointF scaleCentricPoint = getMiddlePoint(firstBasicsPoint, secondBasicsPoint);
+        bitmapNowRectF.set(bitmapInitRectF);
+        scaleMatrix.mapRect(bitmapNowRectF);
 
-                if (bitmapScaleBeforeRectF.width() > viewRectF.width()) {
-                    if (bitmapScaleBeforeRectF.left >= viewRectF.left) {
-                        scaleCentricPointF.x = viewRectF.left;
+        //设置缩放点
+        if (!viewInitRectF.contains(bitmapNowRectF)) {
+
+            if (bitmapNowRectF.height() > viewInitRectF.height()) {
+                if (scale < 1) {
+                    if (bitmapNowRectF.top >= viewInitRectF.top) {
+                        scaleCentricPoint.y = viewInitRectF.top;
                     }
-                    if (bitmapScaleBeforeRectF.right <= viewRectF.right) {
-                        scaleCentricPointF.x = viewRectF.right;
+                    if (bitmapNowRectF.bottom <= viewInitRectF.bottom) {
+                        scaleCentricPoint.y = viewInitRectF.bottom;
                     }
-                } else {
-                    scaleCentricPointF.x = viewRectF.width() / 2;
                 }
             } else {
-                //bitmap比控件小
-                scaleCentricPointF.x = viewRectF.width() / 2;
-                scaleCentricPointF.y = viewRectF.height() / 2;
+                scaleCentricPoint.y = viewInitRectF.height() / 2;
             }
+
+            if (bitmapNowRectF.width() > viewInitRectF.width()) {
+                if (scale < 1) {
+                    if (bitmapNowRectF.left >= viewInitRectF.left) {
+                        scaleCentricPoint.x = viewInitRectF.left;
+                    }
+                    if (bitmapNowRectF.right <= viewInitRectF.right) {
+                        scaleCentricPoint.x = viewInitRectF.right;
+                    }
+                }
+            } else {
+                scaleCentricPoint.x = viewInitRectF.width() / 2;
+            }
+        } else {
+            //bitmap比控件小
+            scaleCentricPoint.x = viewInitRectF.width() / 2;
+            scaleCentricPoint.y = viewInitRectF.height() / 2;
         }
-        return scaleCentricPointF;
+        return scaleCentricPoint;
     }
 
     /**
@@ -425,5 +340,63 @@ public class ImageLookView extends AppCompatImageView {
             }
         });
         animator.start();
+    }
+
+
+
+    //-------------------------------------------对外方法---------------------------------------------------
+
+
+    /**
+     * 获取初始缩放比例
+     *
+     * @return
+     */
+    public float getScaling() {
+        return scaling;
+    }
+
+    /**
+     * 获取最大缩放值
+     *
+     * @return
+     */
+    public float getMaxScaling() {
+        return maxScaling;
+    }
+
+    /**
+     * 设置最大缩放值
+     *
+     * @param maxScaling
+     */
+    public void setMaxScaling(float maxScaling) {
+        this.maxScaling = maxScaling;
+    }
+
+    /**
+     * 获取最小缩放值
+     *
+     * @return
+     */
+    public float getMinScaling() {
+        return minScaling;
+    }
+
+    /**
+     * 设置最小缩放值
+     *
+     * @param minScaling
+     */
+    public void setMinScaling(float minScaling) {
+        this.minScaling = minScaling;
+    }
+
+    /**
+     * 设置旋转
+     * @param angle 旋转角度
+     */
+    public void setRotate(int angle){
+
     }
 }
