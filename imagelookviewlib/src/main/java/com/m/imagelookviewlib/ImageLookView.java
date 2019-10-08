@@ -212,10 +212,9 @@ public class ImageLookView extends AppCompatImageView {
         float basicsPointSize = getTwoPointDistance(firstBasicsPoint, secondBasicsPoint);//基础点距离
         float scale = movePointSize / basicsPointSize;//缩放倍数
 
-        matrix = getImageMatrix();
-        matrix.getValues(matrixValues);
+        getImageMatrix().getValues(matrixValues);
         //设置可缩放条件
-        if (matrixValues[0] >= minScaling && matrixValues[0] <= maxScaling) {
+        if ((scale < 1 && matrixValues[0] * scale >= minScaling) || (scale > 1 && matrixValues[0] * scale <= maxScaling)) {
             //缩放范围必须在设置的最大缩放与最小缩放值之间
 
             //设置极限缩放
@@ -379,10 +378,11 @@ public class ImageLookView extends AppCompatImageView {
                 } else {
                     matrix.postScale(hb, hb, px, py);
                 }
-                matrix.getValues(matrixValues);
-                scaling = matrixValues[0];
                 alreadyAngle[0] = rotate;
                 invalidate();
+                matrix.getValues(matrixValues);
+                Log.e("test1", String.valueOf(matrix));
+                scaling = matrixValues[0];
             }
         });
         valueAnimator.start();
