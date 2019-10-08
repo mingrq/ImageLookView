@@ -4,9 +4,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.m.imagelookviewlib.ImageLookView;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -16,8 +19,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final ImageView imageView = findViewById(R.id.iv);
-
+        final ImageLookView imageView = findViewById(R.id.iv);
+        Button button = findViewById(R.id.btn);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                imageView.setRotate(40);
+            }
+        });
 
      /*   Log.e("test1", imageView.getImageMatrix().toString());
         Log.e("test2", imageView.getDrawable().getBounds().toString());
