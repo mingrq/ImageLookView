@@ -287,7 +287,7 @@ public class ImageLookView extends AppCompatImageView {
     private PointF getScaleCentricPoint(float scale, PointF firstBasicsPoint, PointF secondBasicsPoint) {
         PointF scaleCentricPoint = getMiddlePoint(firstBasicsPoint, secondBasicsPoint);
         bitmapNowRectF.set(bitmapInitRectF);
-        matrix.mapRect(bitmapNowRectF);
+        getImageMatrix().mapRect(bitmapNowRectF);
 
         //设置缩放点
         if (!viewInitRectF.contains(bitmapNowRectF)) {
@@ -351,6 +351,7 @@ public class ImageLookView extends AppCompatImageView {
      * @param angle
      */
     private void startRotateAnim(int angle) {
+
         final int[] alreadyAngle = {0};
         final float px = viewInitRectF.width() / 2;
         final float py = viewInitRectF.height() / 2;
