@@ -14,7 +14,6 @@ import androidx.appcompat.widget.AppCompatImageView;
 
 public class ImageLookView extends AppCompatImageView {
 
-    private float bitmapInitScaling;//初始缩放比例
     private boolean init = true;//初始化
     private RectF viewInitRectF;//初始控件尺寸
     private RectF bitmapInitRectF;//初始bitmap尺寸
@@ -24,20 +23,18 @@ public class ImageLookView extends AppCompatImageView {
     private float maxScaling = 5.0f;//最大缩放比例
     private float minScaling = 1.0f;//最小缩放比例
 
-    private float currentScaling;//操作缩放比例
     private float[] matrixValues = new float[9];
+    private float[] matrixInitValues = new float[9];
 
-    private int firstPointIndex = 0;//第一触点下标
-    private int secondPointIndex = 1;//第二触点下标
-    //基础点
-    private PointF firstBasicsPoint;
-    private PointF secondBasicsPoint;
-    private PointF firstMoveAfterPoint;
-    private PointF secondMoveAfterPoint;
+    int firstPointIndex;//第一触点下标
+    int secondPointIndex;//第二触点下标
 
     private RectF bitmapNowRectF;
-
     private int imageRotate = 0;//当前图片旋转角度
+
+    //手指触摸点
+    private PointF firstBasicsPoint;
+    private PointF secondBasicsPoint;
 
 
     public ImageLookView(Context context) {
@@ -50,27 +47,36 @@ public class ImageLookView extends AppCompatImageView {
 
     public ImageLookView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        firstBasicsPoint = new PointF();
-        secondBasicsPoint = new PointF();
         bitmapNowRectF = new RectF();
         bitmapInitRectF = new RectF(0, 0, getDrawable().getIntrinsicWidth(), getDrawable().getIntrinsicHeight());
     }
 
     @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        if (init) {
+            viewInitRectF = new RectF(0, 0, getWidth(), getHeight());//控件矩形
+            bitmapInitMatrix = new Matrix(getImageMatrix());
+            bitmapInitMatrix.getValues(matrixInitValues);
+            init = false;
+        }
+    }
+
+
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
+        PointF firstMoveAfterPoint;
+        PointF secondMoveAfterPoint;
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN://第一次手指按下
-                firstBasicsPoint.x = event.getX();
-                firstBasicsPoint.y = event.getY();
+                firstBasicsPoint=getPointNow(event, 0);
                 break;
             case MotionEvent.ACTION_POINTER_DOWN://第二个手指按下
                 if (event.getPointerCount() == 2) {
-                    secondBasicsPoint.x = event.getX(1);
-                    secondBasicsPoint.y = event.getY(1);
+                    secondBasicsPoint=getPointNow(event, 1);
                 }
                 break;
             case MotionEvent.ACTION_MOVE://滑动
-
                 //有两个触点--缩放
                 if (event.getPointerCount() == 2) {
                     if (event.getPointerId(0) != firstPointIndex) {
@@ -106,7 +112,8 @@ public class ImageLookView extends AppCompatImageView {
             case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_UP://手指抬起
                 getImageMatrix().getValues(matrixValues);
-                if (matrixValues[0] < bitmapInitScaling) {
+                bitmapInitMatrix.getValues(matrixInitValues);
+                if (matrixValues[0] < matrixInitValues[0]) {
                     startScaleAnimation(matrixValues[0]);
                 }
                 break;
@@ -151,17 +158,7 @@ public class ImageLookView extends AppCompatImageView {
     }
 
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        if (init) {
-            viewInitRectF = new RectF(0, 0, getWidth(), getHeight());//控件矩形
-            bitmapInitMatrix = new Matrix(getImageMatrix());
-            bitmapInitMatrix.getValues(matrixValues);
-            bitmapInitScaling = currentScaling = matrixValues[0];//初始缩放倍数
-            init = false;
-        }
-    }
+
 
 
     /**
@@ -213,9 +210,9 @@ public class ImageLookView extends AppCompatImageView {
         getImageMatrix().getValues(matrixValues);
 
         //设置极限缩放
-        if (currentScaling * scale < minScaling) {
+        if (matrixValues[0] * scale < minScaling) {
             scale = minScaling / Math.abs(matrixValues[0]);
-        } else if (currentScaling * scale > maxScaling) {
+        } else if (matrixValues[0] * scale > maxScaling) {
             scale = maxScaling / Math.abs(matrixValues[0]);
         }
 
@@ -224,7 +221,6 @@ public class ImageLookView extends AppCompatImageView {
 
         //缩放
         getImageMatrix().postScale(scale, scale, scaleCentricPoint.x, scaleCentricPoint.y);
-        currentScaling = currentScaling * scale;
         //调整bitmap位置
         if (scale < 1) {
             RectF scaleAfterRectF = getBitmapScaleAfterRectF(getImageMatrix());//缩放后的图片矩形
@@ -250,7 +246,6 @@ public class ImageLookView extends AppCompatImageView {
             }
         }
         invalidate();
-        Log.e("scale", String.valueOf(getImageMatrix())+"    "+currentScaling);
     }
 
 
@@ -322,13 +317,8 @@ public class ImageLookView extends AppCompatImageView {
      * 开始缩放动画，将bitmap放大到初始大小
      */
     private void startScaleAnimation(float startsacl) {
-        float val;
-        if (startsacl < 0) {
-            val = -bitmapInitScaling;
-        } else {
-            val = bitmapInitScaling;
-        }
-        ValueAnimator animator = ValueAnimator.ofFloat(startsacl, val);
+        bitmapInitMatrix.getValues(matrixInitValues);
+        ValueAnimator animator = ValueAnimator.ofFloat(startsacl, matrixInitValues[0]);
         animator.setDuration(200);
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -341,7 +331,7 @@ public class ImageLookView extends AppCompatImageView {
             }
         });
         animator.start();
-        currentScaling = bitmapInitScaling;
+
     }
 
     /**
@@ -373,10 +363,8 @@ public class ImageLookView extends AppCompatImageView {
                 float hb = viewh / bitmaph;
                 if (wb < hb) {
                     getImageMatrix().postScale(wb, wb, px, py);
-                    currentScaling = currentScaling * wb;
                 } else {
                     getImageMatrix().postScale(hb, hb, px, py);
-                    currentScaling = currentScaling * hb;
                 }
                 alreadyAngle[0] = rotate;
                 invalidate();
@@ -396,7 +384,7 @@ public class ImageLookView extends AppCompatImageView {
      * @return
      */
     public float getScaling() {
-        return bitmapInitScaling;
+        return 0f;
     }
 
     /**
