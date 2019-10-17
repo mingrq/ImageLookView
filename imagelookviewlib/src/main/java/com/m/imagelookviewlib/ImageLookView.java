@@ -208,7 +208,6 @@ public class ImageLookView extends AppCompatImageView {
         float scale = movePointSize / basicsPointSize;//缩放倍数
 
         getImageMatrix().getValues(matrixValues);
-        /*    Log.e("sdafsad", bitmapMatrixInitValues[0] + "  "+matrixValues[0]+"  "+matrixValues[0] * scale);*/
         //设置极限缩放
         if (bitmapMatrixInitValues[0] > 0) {
             if (matrixValues[0] * scale < minScaling * bitmapMatrixInitValues[0]) {
@@ -218,8 +217,7 @@ public class ImageLookView extends AppCompatImageView {
             }
         } else {
             if (matrixValues[0] * scale > minScaling * bitmapMatrixInitValues[0]) {
-                scale = (minScaling * bitmapMatrixInitValues[0]) /matrixValues[0];
-                Log.e("sdafsad", minScaling + "  " + "  " + minScaling * bitmapMatrixInitValues[0] + "  " + Math.abs(matrixValues[0]) + "  " + scale + "  ");
+                scale = (minScaling * bitmapMatrixInitValues[0]) / matrixValues[0];
             } else if (matrixValues[0] * scale < maxScaling * bitmapMatrixInitValues[0]) {
                 scale = (maxScaling * bitmapMatrixInitValues[0]) / matrixValues[0];
             }
@@ -353,6 +351,13 @@ public class ImageLookView extends AppCompatImageView {
         final int[] alreadyAngle = {0};
         final float px = viewInitRectF.width() / 2;
         final float py = viewInitRectF.height() / 2;
+
+        //获取偏移距离
+        RectF skewingRectF = new RectF(bitmapInitRectF);
+        getImageMatrix().mapRect(skewingRectF);
+        float skewingPx = skewingRectF.width() / 2 + skewingRectF.left;
+        float skewingPy = skewingRectF.height() / 2 + skewingRectF.top;
+        getImageMatrix().postTranslate(px - skewingPx, py - skewingPy);
         ValueAnimator valueAnimator = ValueAnimator.ofInt(imageRotate, angle);
         valueAnimator.setDuration(200);
         valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -377,6 +382,8 @@ public class ImageLookView extends AppCompatImageView {
                     getImageMatrix().postScale(hb, hb, px, py);
                 }
                 alreadyAngle[0] = rotate;
+
+
                 invalidate();
                 if (rotate == angle) {
                     bitmapInitMatrix.set(getImageMatrix());
