@@ -61,6 +61,7 @@ public class ImageLookView extends AppCompatImageView {
             viewInitRectF = new RectF(0, 0, getWidth(), getHeight());//控件矩形
             bitmapInitMatrix = new Matrix(getImageMatrix());
             bitmapInitMatrix.getValues(matrixInitValues);
+            Log.e("getImageMatrix()", getImageMatrix() + "");
             init = false;
         }
     }
@@ -119,6 +120,7 @@ public class ImageLookView extends AppCompatImageView {
                 if ((matrixValues[0] > 0 && matrixValues[0] < matrixInitValues[0]) || (matrixValues[0] < 0 && matrixValues[0] > matrixInitValues[0])) {
                     startScaleAnimation(matrixValues[0]);
                 }
+
                 break;
         }
         return true;
@@ -208,6 +210,7 @@ public class ImageLookView extends AppCompatImageView {
         float scale = movePointSize / basicsPointSize;//缩放倍数
 
         getImageMatrix().getValues(matrixValues);
+
         //设置极限缩放
         if (bitmapMatrixInitValues[0] > 0) {
             if (matrixValues[0] * scale < minScaling * bitmapMatrixInitValues[0]) {
@@ -215,12 +218,28 @@ public class ImageLookView extends AppCompatImageView {
             } else if (matrixValues[0] * scale > maxScaling * bitmapMatrixInitValues[0]) {
                 scale = (maxScaling * bitmapMatrixInitValues[0]) / matrixValues[0];
             }
-        } else {
+        } else if (bitmapMatrixInitValues[0] < 0) {
             if (matrixValues[0] * scale > minScaling * bitmapMatrixInitValues[0]) {
                 scale = (minScaling * bitmapMatrixInitValues[0]) / matrixValues[0];
             } else if (matrixValues[0] * scale < maxScaling * bitmapMatrixInitValues[0]) {
                 scale = (maxScaling * bitmapMatrixInitValues[0]) / matrixValues[0];
             }
+        } else {
+            if (bitmapMatrixInitValues[1] > 0) {
+                if (matrixValues[1] * scale < minScaling * bitmapMatrixInitValues[1]) {
+                    scale = (minScaling * bitmapMatrixInitValues[1]) / matrixValues[1];
+                } else if (matrixValues[1] * scale > maxScaling * bitmapMatrixInitValues[1]) {
+                    scale = (maxScaling * bitmapMatrixInitValues[1]) / matrixValues[1];
+                }
+            } else {
+                if (matrixValues[1] * scale > minScaling * bitmapMatrixInitValues[1]) {
+                    scale = (minScaling * bitmapMatrixInitValues[1]) / matrixValues[1];
+                } else if (matrixValues[1] * scale < maxScaling * bitmapMatrixInitValues[1]) {
+                    scale = (maxScaling * bitmapMatrixInitValues[1]) / matrixValues[1];
+                }
+            }
+
+
         }
 
 
@@ -349,16 +368,19 @@ public class ImageLookView extends AppCompatImageView {
 
     private void startRotateAnim(final int angle) {
         final int[] alreadyAngle = {0};
+
         final float px = viewInitRectF.width() / 2;
         final float py = viewInitRectF.height() / 2;
 
         //获取偏移距离
         RectF skewingRectF = new RectF(bitmapInitRectF);
         getImageMatrix().mapRect(skewingRectF);
-        float skewingPx = skewingRectF.width() / 2 + skewingRectF.left;
-        float skewingPy = skewingRectF.height() / 2 + skewingRectF.top;
-        getImageMatrix().postTranslate(px - skewingPx, py - skewingPy);
+        final float skewingPx = px - (skewingRectF.width() / 2 + skewingRectF.left);
+        final float skewingPy = py - (skewingRectF.height() / 2 + skewingRectF.top);
+        getImageMatrix().postTranslate(skewingPx,skewingPy);
+
         ValueAnimator valueAnimator = ValueAnimator.ofInt(imageRotate, angle);
+
         valueAnimator.setDuration(200);
         valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -381,9 +403,8 @@ public class ImageLookView extends AppCompatImageView {
                 } else {
                     getImageMatrix().postScale(hb, hb, px, py);
                 }
+
                 alreadyAngle[0] = rotate;
-
-
                 invalidate();
                 if (rotate == angle) {
                     bitmapInitMatrix.set(getImageMatrix());

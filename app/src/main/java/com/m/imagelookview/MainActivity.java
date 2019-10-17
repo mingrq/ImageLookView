@@ -20,14 +20,28 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         final ImageLookView imageView = findViewById(R.id.iv);
+        imageView.setMaxScaling(10);
         Button button = findViewById(R.id.btn);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                imageView.setRotate(20);
+                imageView.setRotate(89);
             }
         });
-
+        Button button1 = findViewById(R.id.btn1);
+        button1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                imageView.setRotate(90);
+            }
+        });
+        Button button2 = findViewById(R.id.btn2);
+        button2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                imageView.setRotate(-90);
+            }
+        });
      /*   Log.e("test1", imageView.getImageMatrix().toString());
         Log.e("test2", imageView.getDrawable().getBounds().toString());
         imageView.setOnClickListener(new View.OnClickListener() {
