@@ -116,7 +116,6 @@ public class ImageLookView extends AppCompatImageView {
             case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_UP://手指抬起
                 getImageMatrix().getValues(matrixValues);
-                bitmapInitMatrix.getValues(matrixInitValues);
                 if ((matrixValues[0] > 0 && matrixValues[0] < matrixInitValues[0]) || (matrixValues[0] < 0 && matrixValues[0] > matrixInitValues[0])) {
                     startScaleAnimation(matrixValues[0]);
                 }
@@ -342,7 +341,6 @@ public class ImageLookView extends AppCompatImageView {
      * 开始缩放动画，将bitmap放大到初始大小
      */
     private void startScaleAnimation(float startsacl) {
-        bitmapInitMatrix.getValues(matrixInitValues);
         ValueAnimator animator = ValueAnimator.ofFloat(startsacl, matrixInitValues[0]);
         animator.setDuration(200);
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -424,7 +422,7 @@ public class ImageLookView extends AppCompatImageView {
      * @return
      */
     public float getScaling() {
-        return 0f;
+        return matrixInitValues[0];
     }
 
     /**
