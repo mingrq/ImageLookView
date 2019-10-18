@@ -30,6 +30,8 @@ public class ImageLookView extends AppCompatImageView {
     int firstPointIndex;//第一触点下标
     int secondPointIndex;//第二触点下标
 
+    private float rotateAngle = 0;//旋转角度
+
     private RectF bitmapNowRectF;
 
     //手指触摸点
@@ -373,7 +375,7 @@ public class ImageLookView extends AppCompatImageView {
         getImageMatrix().mapRect(skewingRectF);
         final float skewingPx = px - (skewingRectF.width() / 2 + skewingRectF.left);
         final float skewingPy = py - (skewingRectF.height() / 2 + skewingRectF.top);
-        getImageMatrix().postTranslate(skewingPx,skewingPy);
+        getImageMatrix().postTranslate(skewingPx, skewingPy);
 
         ValueAnimator valueAnimator = ValueAnimator.ofInt(0, angle);
 
@@ -467,6 +469,7 @@ public class ImageLookView extends AppCompatImageView {
      * @param angle 旋转角度
      */
     public void setRotate(int angle) {
+        rotateAngle += angle;
         Matrix matrix = new Matrix(getImageMatrix());
         final float px = viewInitRectF.width() / 2;
         final float py = viewInitRectF.height() / 2;
@@ -488,4 +491,14 @@ public class ImageLookView extends AppCompatImageView {
         }
         startRotateAnim(angle);
     }
+
+    /**
+     * 获取旋转角度
+     *
+     * @return
+     */
+    public float getRotateAngle() {
+        return rotateAngle;
+    }
+
 }
