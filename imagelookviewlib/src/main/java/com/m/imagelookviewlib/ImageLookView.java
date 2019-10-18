@@ -31,7 +31,6 @@ public class ImageLookView extends AppCompatImageView {
     int secondPointIndex;//第二触点下标
 
     private RectF bitmapNowRectF;
-    private int imageRotate = 0;//当前图片旋转角度
 
     //手指触摸点
     private PointF firstBasicsPoint;
@@ -61,7 +60,6 @@ public class ImageLookView extends AppCompatImageView {
             viewInitRectF = new RectF(0, 0, getWidth(), getHeight());//控件矩形
             bitmapInitMatrix = new Matrix(getImageMatrix());
             bitmapInitMatrix.getValues(matrixInitValues);
-            Log.e("getImageMatrix()", getImageMatrix() + "");
             init = false;
         }
     }
@@ -238,8 +236,6 @@ public class ImageLookView extends AppCompatImageView {
                     scale = (maxScaling * bitmapMatrixInitValues[1]) / matrixValues[1];
                 }
             }
-
-
         }
 
 
@@ -379,7 +375,7 @@ public class ImageLookView extends AppCompatImageView {
         final float skewingPy = py - (skewingRectF.height() / 2 + skewingRectF.top);
         getImageMatrix().postTranslate(skewingPx,skewingPy);
 
-        ValueAnimator valueAnimator = ValueAnimator.ofInt(imageRotate, angle);
+        ValueAnimator valueAnimator = ValueAnimator.ofInt(0, angle);
 
         valueAnimator.setDuration(200);
         valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -491,14 +487,5 @@ public class ImageLookView extends AppCompatImageView {
             matrix.postScale(hb, hb, px, py);
         }
         startRotateAnim(angle);
-    }
-
-    /**
-     * 获取当前图片角度
-     *
-     * @return
-     */
-    public int getImageRotate() {
-        return imageRotate;
     }
 }
