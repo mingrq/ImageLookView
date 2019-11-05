@@ -2,10 +2,16 @@ package com.m.imagelookviewlib;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -49,16 +55,16 @@ public class ImageLookView extends AppCompatImageView {
 
     public ImageLookView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        bitmapNowRectF = new RectF();
-        bitmapInitRectF = new RectF(0, 0, getDrawable().getIntrinsicWidth(), getDrawable().getIntrinsicHeight());
-        bitmapMatrix = new Matrix();
-        bitmapMatrix.getValues(bitmapMatrixInitValues);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (init) {
+        if (getDrawable() != null && init) {
+            bitmapNowRectF = new RectF();
+            bitmapInitRectF = new RectF(0, 0, getDrawable().getIntrinsicWidth(), getDrawable().getIntrinsicHeight());
+            bitmapMatrix = new Matrix();
+            bitmapMatrix.getValues(bitmapMatrixInitValues);
             viewInitRectF = new RectF(0, 0, getWidth(), getHeight());//控件矩形
             bitmapInitMatrix = new Matrix(getImageMatrix());
             bitmapInitMatrix.getValues(matrixInitValues);
@@ -119,7 +125,6 @@ public class ImageLookView extends AppCompatImageView {
                 if ((matrixValues[0] > 0 && matrixValues[0] < matrixInitValues[0]) || (matrixValues[0] < 0 && matrixValues[0] > matrixInitValues[0])) {
                     startScaleAnimation(matrixValues[0]);
                 }
-
                 break;
         }
         return true;

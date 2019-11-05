@@ -9,6 +9,7 @@ import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.m.imagelookviewlib.ImageLookView;
 
 
@@ -20,14 +21,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         final ImageLookView imageView = findViewById(R.id.iv);
-        imageView.setMaxScaling(10);
+        imageView.setMaxScaling(3);
+        imageView.setMinScaling(0.3f);
+        Glide.with(this).load("https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=2037503962,3258114106&fm=26&gp=0.jpg").into(imageView);
         Button button = findViewById(R.id.btn);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                imageView.setRotate(89);
-            }
-        });
+
         Button button1 = findViewById(R.id.btn1);
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -42,28 +40,6 @@ public class MainActivity extends AppCompatActivity {
                 imageView.setRotate(-90);
             }
         });
-     /*   Log.e("test1", imageView.getImageMatrix().toString());
-        Log.e("test2", imageView.getDrawable().getBounds().toString());
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-                Rect rect = new Rect();
-                imageView.getDrawingRect(rect);
-                if (i == 2) {
-                    Matrix matrix = imageView.getImageMatrix();
-                    matrix.postTranslate(1, 1);
-                    imageView.setImageMatrix(matrix);
-                    imageView.invalidate();
-                }
-                i=2;
-                Log.e("test", rect.toString());
-
-
-                Log.e("test1", imageView.getImageMatrix().toString());
-                Log.e("test2", imageView.getDrawable().getBounds().toString());
-            }
-        });
-*/
     }
 }
