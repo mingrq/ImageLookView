@@ -16,6 +16,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageView;
 
 public class ImageLookView extends AppCompatImageView {
@@ -73,6 +74,8 @@ public class ImageLookView extends AppCompatImageView {
     }
 
 
+    boolean isclick = true;
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         PointF firstMoveAfterPoint;
@@ -80,6 +83,7 @@ public class ImageLookView extends AppCompatImageView {
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN://第一次手指按下
                 firstBasicsPoint = getPointNow(event, 0);
+                isclick = true;
                 break;
             case MotionEvent.ACTION_POINTER_DOWN://第二个手指按下
                 if (event.getPointerCount() == 2) {
@@ -87,6 +91,7 @@ public class ImageLookView extends AppCompatImageView {
                 }
                 break;
             case MotionEvent.ACTION_MOVE://滑动
+                isclick = false;
                 //有两个触点--缩放
                 if (event.getPointerCount() == 2) {
                     if (event.getPointerId(0) != firstPointIndex) {
@@ -105,7 +110,6 @@ public class ImageLookView extends AppCompatImageView {
                         secondBasicsPoint.set(secondMoveAfterPoint);
                     }
                 }
-
                 //只有一个触点--平移
                 if (event.getPointerCount() == 1) {
                     if (event.getPointerId(0) != firstPointIndex) {
@@ -127,7 +131,12 @@ public class ImageLookView extends AppCompatImageView {
                 }
                 break;
         }
-        return true;
+        if (isclick) {
+            return super.onTouchEvent(event);
+        } else {
+            return true;
+        }
+
     }
 
     /**

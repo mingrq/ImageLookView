@@ -1,11 +1,13 @@
 package com.m.imagelookview;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -24,22 +26,19 @@ public class MainActivity extends AppCompatActivity {
         imageView.setMaxScaling(3);
         imageView.setMinScaling(0.3f);
         Glide.with(this).load("https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=2037503962,3258114106&fm=26&gp=0.jpg").into(imageView);
-        Button button = findViewById(R.id.btn);
-
-        Button button1 = findViewById(R.id.btn1);
-        button1.setOnClickListener(new View.OnClickListener() {
+        imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                imageView.setRotate(90);
+                Intent intent = new Intent(MainActivity.this, teActivity.class);
+                startActivity(intent);
             }
         });
-        Button button2 = findViewById(R.id.btn2);
-        button2.setOnClickListener(new View.OnClickListener() {
+        imageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
-            public void onClick(View view) {
-                imageView.setRotate(-90);
+            public boolean onLongClick(View view) {
+                Log.e("onLongClick", "onLongClick");
+                return false;
             }
         });
-
     }
 }
