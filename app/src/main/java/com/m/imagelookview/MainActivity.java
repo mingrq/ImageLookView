@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.e("onClick", "onClick");
                 Intent intent = new Intent(MainActivity.this, teActivity.class);
                 startActivity(intent);
             }

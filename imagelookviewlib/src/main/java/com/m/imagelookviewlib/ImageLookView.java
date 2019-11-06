@@ -56,16 +56,18 @@ public class ImageLookView extends AppCompatImageView {
 
     public ImageLookView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        bitmapNowRectF = new RectF();
+        bitmapMatrix = new Matrix();
+        bitmapMatrix.getValues(bitmapMatrixInitValues);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (getDrawable() != null && init) {
-            bitmapNowRectF = new RectF();
+        if (getDrawable() != null) {
             bitmapInitRectF = new RectF(0, 0, getDrawable().getIntrinsicWidth(), getDrawable().getIntrinsicHeight());
-            bitmapMatrix = new Matrix();
-            bitmapMatrix.getValues(bitmapMatrixInitValues);
+        }
+        if (init) {
             viewInitRectF = new RectF(0, 0, getWidth(), getHeight());//控件矩形
             bitmapInitMatrix = new Matrix(getImageMatrix());
             bitmapInitMatrix.getValues(matrixInitValues);
@@ -82,15 +84,18 @@ public class ImageLookView extends AppCompatImageView {
         PointF secondMoveAfterPoint;
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN://第一次手指按下
+                Log.e("1","ACTION_DOWN");
                 firstBasicsPoint = getPointNow(event, 0);
                 isclick = true;
                 break;
             case MotionEvent.ACTION_POINTER_DOWN://第二个手指按下
+                Log.e("2","ACTION_POINTER_DOWN");
                 if (event.getPointerCount() == 2) {
                     secondBasicsPoint = getPointNow(event, 1);
                 }
                 break;
             case MotionEvent.ACTION_MOVE://滑动
+                Log.e("3","ACTION_MOVE");
                 isclick = false;
                 //有两个触点--缩放
                 if (event.getPointerCount() == 2) {
@@ -125,6 +130,7 @@ public class ImageLookView extends AppCompatImageView {
                 break;
             case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_UP://手指抬起
+                Log.e("4","ACTION_UP");
                 getImageMatrix().getValues(matrixValues);
                 if ((matrixValues[0] > 0 && matrixValues[0] < matrixInitValues[0]) || (matrixValues[0] < 0 && matrixValues[0] > matrixInitValues[0])) {
                     startScaleAnimation(matrixValues[0]);
@@ -136,7 +142,6 @@ public class ImageLookView extends AppCompatImageView {
         } else {
             return true;
         }
-
     }
 
     /**
@@ -183,6 +188,7 @@ public class ImageLookView extends AppCompatImageView {
         float movex;
         float movey;
         //获取bitmap现在的边界
+        Log.e("bitmapInitRectF", String.valueOf(bitmapInitRectF==null));
         bitmapNowRectF.set(bitmapInitRectF);
         getImageMatrix().mapRect(bitmapNowRectF);
         //设置可移动条件
