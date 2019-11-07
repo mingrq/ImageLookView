@@ -96,7 +96,7 @@ public class ImageLookView extends AppCompatImageView {
                 break;
             case MotionEvent.ACTION_MOVE://滑动
                 Log.e("3","ACTION_MOVE");
-                isclick = false;
+
                 //有两个触点--缩放
                 if (event.getPointerCount() == 2) {
                     if (event.getPointerId(0) != firstPointIndex) {
@@ -194,11 +194,13 @@ public class ImageLookView extends AppCompatImageView {
         //设置可移动条件
         if (bitmapNowRectF.height() > viewInitRectF.height() && bitmapNowRectF.top <= viewInitRectF.top && bitmapNowRectF.bottom >= viewInitRectF.bottom) {
             movey = oneMoveY;
+            isclick = false;
         } else {
             movey = 0;
         }
         if (bitmapNowRectF.width() > viewInitRectF.width() && bitmapNowRectF.left <= viewInitRectF.left && bitmapNowRectF.right >= viewInitRectF.right) {
             movex = oneMoveX;
+            isclick = false;
         } else {
             movex = 0;
         }
@@ -224,6 +226,7 @@ public class ImageLookView extends AppCompatImageView {
      * 设置缩放
      */
     private void setScale(PointF firstPoint, PointF secondPoint, PointF firstBasicsPoint, PointF secondBasicsPoint) {
+        isclick = false;
         float movePointSize = getTwoPointDistance(firstPoint, secondPoint);//移动后两点距离
         float basicsPointSize = getTwoPointDistance(firstBasicsPoint, secondBasicsPoint);//基础点距离
         float scale = movePointSize / basicsPointSize;//缩放倍数
